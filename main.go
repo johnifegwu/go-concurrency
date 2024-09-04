@@ -2,9 +2,27 @@ package main
 
 import (
 	"fmt"
+	"strings"
 )
 
+func wordCount(text string) string {
+	words := strings.Fields(text)
+	counts := map[string]int{}
+
+	for _, word := range words {
+		counts[strings.ToLower(word)]++
+	}
+
+	return fmt.Sprintln(counts)
+}
+
 func main() {
+
+	text := `Obil was the former Governor 
+	of Anambra State, he was also the former 
+	presidential candidate for the Labor party.
+	`
+	fmt.Println(wordCount(text))
 
 	crypto := map[string]float64{
 		"BTC":  64000.25,
@@ -13,10 +31,14 @@ func main() {
 	}
 
 	// print the length of the ma
-	fmt.Printf("lenght: %v", len(crypto))
+	fmt.Printf("lenght: %v, \n", len(crypto))
 
-	// print B
-	fmt.Printf("lenght: %v", len(crypto))
+	//print all
+	for key, value := range crypto {
+
+		fmt.Printf("%v", key)
+		fmt.Printf(" : %v, \n", value)
+	}
 	/*
 		// Slices
 		nameSlice := []string{"John", "Paul", "James"}
