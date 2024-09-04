@@ -1,9 +1,87 @@
 package main
 
 import (
+	"errors"
 	"fmt"
+	"io"
+	"log"
+	"net/http"
+	"os"
 	"strings"
 )
+
+// generics
+type Ordered interface {
+	int | float64 | string
+}
+
+func min[T Ordered](values []T) (T, error) {
+	if len(values) == 0 {
+		var zero T
+		return zero, errors.New("min of empty slice")
+	}
+	m := values[0]
+
+	for _, v := range values {
+		if v < m {
+			m = v
+		}
+	}
+
+	return m, nil
+}
+
+// Capper implements io.Writer and turn everything to uppercase.
+type Capper struct {
+	wrt io.Writer
+}
+
+// Write implements io.Writer.
+func (c *Capper) Write(p []byte) (n int, err error) {
+	diff := byte('a' - 'A')
+
+	out := make([]byte, len(p))
+
+	for i, c := range p {
+
+		if c >= 'a' && c <= 'z' {
+			c -= diff
+		}
+
+		out[i] = c
+	}
+
+	return c.wrt.Write(out)
+}
+
+type Squre struct {
+	x      int
+	y      int
+	lenght int
+}
+
+func NewSqure(x int, y int, length int) (*Squre, error) {
+	if length <= 0 {
+		return nil, errors.New("length must be greater then zero")
+	}
+
+	s := Squre{
+		x:      x,
+		y:      y,
+		lenght: length,
+	}
+
+	return &s, nil
+}
+
+func (s *Squre) Move(dx int, dy int) {
+	s.x = dx
+	s.y = dy
+}
+
+func (s Squre) Area() int {
+	return s.lenght * s.lenght
+}
 
 func wordCount(text string) string {
 	words := strings.Fields(text)
@@ -16,7 +94,70 @@ func wordCount(text string) string {
 	return fmt.Sprintln(counts)
 }
 
+func contentType(url string) (string, error) {
+	resp, err := http.Get(url)
+
+	if err != nil {
+		return "", err
+	}
+
+	defer resp.Body.Close()
+
+	conType := resp.Header.Get("Content-Type")
+
+	if conType == "" {
+		return "", errors.New("comtent-type header not found")
+	}
+
+	return conType, nil
+}
+
+// Gaurding against panic
+func safevalue(vals []int, index int) (n int, err error) {
+	defer func() {
+		if e := recover(); e != nil {
+			err = fmt.Errorf("%v", e)
+		}
+	}()
+
+	return vals[index], nil
+}
+
 func main() {
+
+	vals := []int{1, 2, 3, 4, 5}
+	v, err := safevalue(vals, 10)
+
+	if err != nil {
+		fmt.Printf("Error: %v, \n", err)
+	} else {
+		fmt.Printf("Value: %v, \n", v)
+	}
+	// min value of a slice
+	//=================================================
+	fmt.Println(min([]float64{10, 1, 8, 4}))
+	fmt.Println(min([]string{"H", "C", "A", "Z"}))
+	//=================================================
+
+	// convert to uppercase
+	//==================================================
+	c := &Capper{os.Stdout}
+	fmt.Fprintln(c, "Helo world")
+	//==================================================
+
+	s, err := NewSqure(1, 1, 10)
+
+	if err != nil {
+		log.Fatalf("ERROR: an error occured while creating squre")
+	}
+
+	// move squre
+	s.Move(4, 5)
+	// use %#v to print VALUE and TYPE in one go
+	fmt.Printf("%#v", s)
+	fmt.Println(s.Area())
+
+	fmt.Println(contentType("https://linkedin.com"))
 
 	text := `Obil was the former Governor 
 	of Anambra State, he was also the former 
