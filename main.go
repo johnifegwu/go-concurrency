@@ -8,6 +8,8 @@ import (
 	"net/http"
 	"os"
 	"strings"
+	"sync"
+	"time"
 
 	pkgerrors "github.com/pkg/errors"
 )
@@ -114,6 +116,32 @@ func contentType(url string) (string, error) {
 	return conType, nil
 }
 
+func siteSerial(urls []string) {
+	for _, url := range urls {
+		ctype, err := contentType(url)
+		if err == nil {
+			fmt.Printf("%s -> %s, \n", url, ctype)
+		}
+	}
+}
+
+// Goroutines example
+func siteSerialConcurrent(urls []string) {
+	var wg sync.WaitGroup
+	for _, url := range urls {
+		wg.Add(1)
+		go func(url string) {
+			ctype, err := contentType(url)
+			if err == nil {
+				fmt.Printf("%s -> %s, \n", url, ctype)
+			}
+			wg.Done()
+		}(url)
+	}
+
+	wg.Wait()
+}
+
 // Gaurding against panic
 func safevalue(vals []int, index int) (n int, err error) {
 	defer func() {
@@ -152,6 +180,20 @@ func killServer(pidFilePath string) error {
 
 func main() {
 
+	urls := []string{
+		"https://golang.org",
+		"https://api.github.com",
+		"https://httpbin.org/ip",
+	}
+
+	start := time.Now()
+	siteSerial(urls)
+	fmt.Println(time.Since(start))
+
+	start = time.Now()
+	siteSerialConcurrent(urls)
+	fmt.Println(time.Since(start))
+
 	//=========================================
 	if err := killServer("server.pid"); err != nil {
 		fmt.Fprintf(os.Stderr, "errors: %s\n", err)
@@ -175,8 +217,10 @@ func main() {
 
 	// convert to uppercase
 	//==================================================
+
 	c := &Capper{os.Stdout}
 	fmt.Fprintln(c, "Helo world")
+
 	//==================================================
 
 	s, err := NewSqure(1, 1, 10)
@@ -193,10 +237,10 @@ func main() {
 
 	fmt.Println(contentType("https://linkedin.com"))
 
-	text := `Obil was the former Governor 
-	of Anambra State, he was also the former 
-	presidential candidate for the Labor party.
-	`
+	text := `Obil was the former Governor
+		of Anambra State, he was also the former
+		presidential candidate for the Labor party.
+		`
 	fmt.Println(wordCount(text))
 
 	crypto := map[string]float64{
@@ -214,66 +258,61 @@ func main() {
 		fmt.Printf("%v", key)
 		fmt.Printf(" : %v, \n", value)
 	}
-	/*
-		// Slices
-		nameSlice := []string{"John", "Paul", "James"}
 
-		nameSlice = append(nameSlice, "Kalu")
+	// Slices
+	nameSlice := []string{"John", "Paul", "James"}
 
-		// Say helo
-		for _, name := range nameSlice {
-			fmt.Printf("helo %v,\n", name)
-		}
-	*/
+	nameSlice = append(nameSlice, "Kalu")
 
-	/*
-		count := 0
+	// Say helo
+	for _, name := range nameSlice {
+		fmt.Printf("helo %v,\n", name)
+	}
 
-		// Even ended numbers
-		for a := 1000; a <= 9999; a++ {
+	count := 0
 
-			for b := 1000; b <= 9999; b++ {
-				n := a * b
+	// Even ended numbers
+	for a := 1000; a <= 9999; a++ {
 
-				// if a*b is even ended
-				s := fmt.Sprintf("%v", n)
+		for b := 1000; b <= 9999; b++ {
+			n := a * b
 
-				if s[0] == s[len(s)-1] {
+			// if a*b is even ended
+			s := fmt.Sprintf("%v", n)
 
-					// increment count
-					count++
-				}
+			if s[0] == s[len(s)-1] {
 
+				// increment count
+				count++
 			}
+
 		}
+	}
 
-		fmt.Println(count)
-	*/
+	fmt.Println(count)
 
-	/*
-		x, y := 3.4, 6.8
+	x, y := 3.4, 6.8
 
-		r := y * x
+	r := y * x
 
-		// Using fmt.Printf for formatted output
-		fmt.Printf("y=%v, type of %T\n", y, y)
-		fmt.Printf("x=%v, type of %T\n", x, x)
-		fmt.Printf("r=%v, type of %T\n", r, r)
+	// Using fmt.Printf for formatted output
+	fmt.Printf("y=%v, type of %T\n", y, y)
+	fmt.Printf("x=%v, type of %T\n", x, x)
+	fmt.Printf("r=%v, type of %T\n", r, r)
 
-		for i := 1; i <= 20; i++ {
-			if i%3 == 0 && i%5 == 0 {
-				// if number is divisible by bith 3 and 5 print fizz buzz
-				fmt.Println("fizz buzz")
-			} else if i%3 == 0 {
-				// if number is divisible by 3 print fizz
-				fmt.Println("fizz")
-			} else if i%5 == 0 {
-				// if number is divisible by 5 print buzz
-				fmt.Println("buzz")
-			} else {
-				// print the number
-				fmt.Println(i)
-			}
+	for i := 1; i <= 20; i++ {
+		if i%3 == 0 && i%5 == 0 {
+			// if number is divisible by bith 3 and 5 print fizz buzz
+			fmt.Println("fizz buzz")
+		} else if i%3 == 0 {
+			// if number is divisible by 3 print fizz
+			fmt.Println("fizz")
+		} else if i%5 == 0 {
+			// if number is divisible by 5 print buzz
+			fmt.Println("buzz")
+		} else {
+			// print the number
+			fmt.Println(i)
 		}
-	*/
+	}
 }
