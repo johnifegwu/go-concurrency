@@ -142,6 +142,29 @@ func siteSerialConcurrent(urls []string) {
 	wg.Wait()
 }
 
+// sending data through a channel that has no listener will get the system blocked
+// rather we use goroutine to send the data concurrently
+// example
+func sendViaGoroutine(data int) {
+	// create the channel
+	ch := make(chan int) // we created a channel of type int
+	// ch <- data // sending from here will block
+
+	// send from goroutine
+	go func() {
+		// print sending data
+		fmt.Printf("sending %d\n", data)
+		// send data to the channel
+		ch <- data
+	}()
+
+	// receive data from the channel
+	val := <-ch
+
+	// print received data
+	fmt.Printf("got %d\n", val)
+}
+
 // Gaurding against panic
 func safevalue(vals []int, index int) (n int, err error) {
 	defer func() {
@@ -179,6 +202,14 @@ func killServer(pidFilePath string) error {
 }
 
 func main() {
+
+	// Goroutines
+	//====================================================
+	datas := []int{101, 201, 301, 401, 501}
+	for index := range datas {
+		sendViaGoroutine(datas[index])
+	}
+	//====================================================
 
 	urls := []string{
 		"https://golang.org",
