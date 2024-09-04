@@ -8,6 +8,8 @@ import (
 	"net/http"
 	"os"
 	"strings"
+
+	pkgerrors "github.com/pkg/errors"
 )
 
 // generics
@@ -123,7 +125,39 @@ func safevalue(vals []int, index int) (n int, err error) {
 	return vals[index], nil
 }
 
+// Opening files safely in go
+func killServer(pidFilePath string) error {
+	file, err := os.Open(pidFilePath)
+	if err != nil {
+		return err
+	}
+
+	defer file.Close()
+
+	var pid int
+	if _, err := fmt.Fscanf(file, "%d", &pid); err != nil {
+		return pkgerrors.Wrap(err, "bad proccess ID")
+	}
+
+	// Simulate killing the server
+	fmt.Println("Killing the server")
+
+	if err := os.Remove(pidFilePath); err != nil {
+		// we can go on if we fail here
+		log.Printf("warning: can't remove pid file - %s", err)
+	}
+
+	return nil
+}
+
 func main() {
+
+	//=========================================
+	if err := killServer("server.pid"); err != nil {
+		fmt.Fprintf(os.Stderr, "errors: %s\n", err)
+		os.Exit(1)
+	}
+	//==========================================
 
 	vals := []int{1, 2, 3, 4, 5}
 	v, err := safevalue(vals, 10)
