@@ -202,7 +202,7 @@ func killServer(pidFilePath string) error {
 	return nil
 }
 
-// Algorithym
+// Algorithm
 // ==========================================================================
 var (
 	urlTemplate = "https://s3.amazonaws.com/nyc-tlc/trip+data/%s_tripdata_2020-%02d.csv"
@@ -229,7 +229,7 @@ func downloadSize(url string) (int, error) {
 	return strconv.Atoi(resp.Header.Get("Content-Length"))
 }
 
-// to make the algorithym perform better
+// to make the Algorithm perform better
 // we will add a worker
 type result struct {
 	url  string
@@ -248,7 +248,7 @@ func sizeWorker(url string, ch chan result) {
 
 func main() {
 
-	//Concurrent Algorithym
+	//Concurrent Algorithm
 	//====================================================
 	start := time.Now()
 	size := 0
